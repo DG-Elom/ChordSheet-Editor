@@ -1,9 +1,11 @@
 import { create } from "zustand";
 import type { ChordSheet, Section } from "@/types/database.types";
+import type { JSONContent } from "@tiptap/react";
 
 interface EditorState {
   sheet: ChordSheet | null;
   sections: Section[];
+  editorContent: JSONContent | null;
   isDirty: boolean;
   isSaving: boolean;
   focusMode: boolean;
@@ -13,6 +15,7 @@ interface EditorState {
   setSheet: (sheet: ChordSheet | null) => void;
   updateSheet: (updates: Partial<ChordSheet>) => void;
   setSections: (sections: Section[]) => void;
+  setEditorContent: (content: JSONContent) => void;
   addSection: (section: Section) => void;
   updateSection: (id: string, updates: Partial<Section>) => void;
   removeSection: (id: string) => void;
@@ -28,6 +31,7 @@ interface EditorState {
 const initialState = {
   sheet: null,
   sections: [],
+  editorContent: null as JSONContent | null,
   isDirty: false,
   isSaving: false,
   focusMode: false,
@@ -47,6 +51,8 @@ export const useEditorStore = create<EditorState>((set) => ({
     })),
 
   setSections: (sections) => set({ sections }),
+
+  setEditorContent: (editorContent) => set({ editorContent }),
 
   addSection: (section) =>
     set((state) => ({

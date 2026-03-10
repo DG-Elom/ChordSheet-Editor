@@ -3,7 +3,7 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useEditorStore } from "@/lib/store/editor-store";
 import { SheetMetadataBar } from "./SheetMetadataBar";
 import { EditorToolbar } from "./EditorToolbar";
@@ -23,10 +23,18 @@ interface ChordSheetEditorProps {
 }
 
 export function ChordSheetEditor({ sheet, sections }: ChordSheetEditorProps) {
-  const { setSheet, setSections, focusMode, chordInsertMode, toggleChordInsertMode } =
-    useEditorStore();
+  const {
+    setSheet,
+    setSections,
+    setEditorContent,
+    setDirty,
+    focusMode,
+    chordInsertMode,
+    toggleChordInsertMode,
+  } = useEditorStore();
   const [chordPopoverPos, setChordPopoverPos] = useState<{ x: number; y: number } | null>(null);
   const [chordSuggestions] = useState<string[]>(() => getChordSuggestions("", 20));
+  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setSheet(sheet);
@@ -51,6 +59,17 @@ export function ChordSheetEditor({ sheet, sections }: ChordSheetEditorProps) {
       SectionNode,
     ],
     content: buildEditorContent(sections),
+    onUpdate({ editor: ed }) {
+      // Debounce content extraction to avoid excessive store updates
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+      updateTimeoutRef.current = setTimeout(() => {
+        const json = ed.getJSON();
+        setEditorContent(json);
+        setDirty(true);
+      }, 300);
+    },
     editorProps: {
       attributes: {
         class: "prose prose-invert max-w-none px-6 py-4 focus:outline-none min-h-[60vh]",

@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Plus, FileMusic, Download, Share2 } from "lucide-react";
+import { Plus, FileMusic, Download, Share2, Clock } from "lucide-react";
 import Link from "next/link";
+
+export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -18,6 +20,24 @@ export default async function DashboardPage() {
     user.user_metadata?.full_name ||
     user.email?.split("@")[0] ||
     "User";
+
+  // Fetch real data
+  const { data: sheets } = await supabase
+    .from("chord_sheets")
+    .select("*")
+    .eq("owner_id", user.id)
+    .eq("is_archived", false)
+    .order("updated_at", { ascending: false });
+
+  const { data: shares } = await supabase
+    .from("shares")
+    .select("id")
+    .eq("created_by", user.id)
+    .eq("is_active", true);
+
+  const totalSheets = sheets?.length ?? 0;
+  const totalShares = shares?.length ?? 0;
+  const recentSheets = sheets?.slice(0, 6) ?? [];
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
@@ -38,21 +58,55 @@ export default async function DashboardPage() {
 
       {/* Stats cards */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard icon={FileMusic} label="Total Sheets" value="0" />
+        <StatCard icon={FileMusic} label="Total Sheets" value={String(totalSheets)} />
         <StatCard icon={Download} label="Recent Exports" value="0" />
-        <StatCard icon={Share2} label="Shared" value="0" />
+        <StatCard icon={Share2} label="Shared" value={String(totalShares)} />
       </div>
 
       {/* Recent sheets */}
       <div>
         <h3 className="mb-4 text-lg font-semibold text-foreground">Recent Sheets</h3>
-        <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-card p-12 text-center">
-          <FileMusic className="mb-3 h-10 w-10 text-muted-foreground/50" />
-          <p className="text-sm font-medium text-muted-foreground">No sheets yet</p>
-          <p className="mt-1 text-sm text-muted-foreground/70">
-            Create your first chord sheet to get started.
-          </p>
-        </div>
+        {recentSheets.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-card p-12 text-center">
+            <FileMusic className="mb-3 h-10 w-10 text-muted-foreground/50" />
+            <p className="text-sm font-medium text-muted-foreground">No sheets yet</p>
+            <p className="mt-1 text-sm text-muted-foreground/70">
+              Create your first chord sheet to get started.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {recentSheets.map((sheet) => (
+              <Link
+                key={sheet.id}
+                href={`/sheets/${sheet.id}`}
+                className="group rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/50 hover:bg-accent/50"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="truncate text-sm font-medium text-card-foreground group-hover:text-primary">
+                      {sheet.title || "Untitled"}
+                    </h4>
+                    {sheet.artist && (
+                      <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                        {sheet.artist}
+                      </p>
+                    )}
+                  </div>
+                  {sheet.song_key && (
+                    <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
+                      {sheet.song_key}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-3 flex items-center gap-1 text-xs text-muted-foreground/70">
+                  <Clock className="h-3 w-3" />
+                  {formatDate(sheet.updated_at)}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -80,4 +134,19 @@ function StatCard({
       </div>
     </div>
   );
+}
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString();
 }
