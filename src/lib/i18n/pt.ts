@@ -188,6 +188,7 @@ export const pt: Dictionary = {
   previousVersions: "Versoes anteriores",
 
   generateLyrics: "Gerar letras",
+  searchChords: "Buscar acordes",
   suggestChords: "Sugerir acordes",
   alternativeProgressions: "Progressoes alternativas",
   musicalAnalysis: "Analise musical",

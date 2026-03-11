@@ -1,5 +1,33 @@
 import type { LLMMessage } from "./types";
 
+export function buildSearchChordsPrompt(
+  songQuery: string,
+  searchResults: string,
+  key?: string,
+): LLMMessage[] {
+  return [
+    {
+      role: "system",
+      content: `You are an expert musician. You are given web search results containing chord sheets for a song. Your job is to extract and format the correct chords with lyrics.
+
+Return a clean, well-formatted chord sheet with:
+- Song title and artist at the top
+- Section markers like [Verse 1], [Chorus], [Bridge], etc.
+- Chords placed above the lyrics at the correct positions
+- Standard chord notation (C, Am, G7, Fmaj7, etc.)
+
+If the search results are incomplete or unclear, use your musical knowledge to fill in gaps.
+If multiple sources disagree, prefer the most common/standard version.
+${key ? `Transpose to the key of ${key} if needed.` : ""}
+Do NOT return JSON. Return a plain text chord sheet ready to be used by a musician.`,
+    },
+    {
+      role: "user",
+      content: `Find the correct chords for: "${songQuery}"\n\nHere are the web search results:\n\n${searchResults}`,
+    },
+  ];
+}
+
 export function buildLyricsGenerationPrompt(
   theme: string,
   style?: string,

@@ -28,6 +28,7 @@ import { createChordDecorationPlugin } from "@/extensions/chord-mark";
 import { SectionNode } from "@/extensions/section-node";
 import { getChordSuggestions } from "@/lib/chord-engine";
 import { parseChord } from "@/lib/chord-engine";
+import { parsePlainText, parsedSheetToTipTap } from "@/lib/import";
 import { transpose } from "@/lib/chord-engine";
 import type { ChordSheet, Section } from "@/types/database.types";
 import type { JSONContent } from "@tiptap/react";
@@ -407,6 +408,13 @@ export function ChordSheetEditor({ sheet, sections }: ChordSheetEditorProps) {
               <AIAssistantPanel
                 sheetContent={editor?.getText()}
                 songKey={sheet.song_key || undefined}
+                onInsertContent={(content) => {
+                  const parsed = parsePlainText(content);
+                  const tiptapDoc = parsedSheetToTipTap(parsed);
+                  if (tiptapDoc.content) {
+                    editor?.commands.insertContent(tiptapDoc.content);
+                  }
+                }}
               />
             )}
             {showComments && <CommentsPanel sheetId={sheet.id} />}

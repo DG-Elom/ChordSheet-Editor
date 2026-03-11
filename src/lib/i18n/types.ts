@@ -204,6 +204,7 @@ export interface Dictionary {
 
   // AI features
   generateLyrics: string;
+  searchChords: string;
   suggestChords: string;
   alternativeProgressions: string;
   musicalAnalysis: string;

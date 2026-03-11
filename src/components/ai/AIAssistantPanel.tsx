@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, Loader2, Music, Mic2, BarChart3 } from "lucide-react";
+import { Sparkles, Loader2, Music, Mic2, BarChart3, Search } from "lucide-react";
 import { useT } from "@/lib/i18n";
+import { useLLMSettingsStore } from "@/lib/llm/settings-store";
 
 interface AIAssistantPanelProps {
   sheetContent?: string;
@@ -10,7 +11,12 @@ interface AIAssistantPanelProps {
   onInsertContent?: (content: string) => void;
 }
 
-type AITask = "suggest_chords" | "generate_lyrics" | "harmonize" | "analyze_harmony";
+type AITask =
+  | "search_chords"
+  | "suggest_chords"
+  | "generate_lyrics"
+  | "harmonize"
+  | "analyze_harmony";
 
 export function AIAssistantPanel({
   sheetContent,
@@ -18,12 +24,18 @@ export function AIAssistantPanel({
   onInsertContent,
 }: AIAssistantPanelProps) {
   const t = useT();
+  const { provider, apiKey, model, enabled } = useLLMSettingsStore();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [activeTask, setActiveTask] = useState<AITask | null>(null);
   const [prompt, setPrompt] = useState("");
 
   async function runTask(task: AITask) {
+    if (!enabled || !apiKey) {
+      setResult("Please configure your AI provider in Settings first.");
+      setActiveTask(task);
+      return;
+    }
     setLoading(true);
     setActiveTask(task);
     setResult(null);
@@ -34,8 +46,13 @@ export function AIAssistantPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           task,
-          content: sheetContent || prompt,
+          content: task === "search_chords" ? prompt : sheetContent || prompt,
           key: songKey,
+          config: {
+            provider,
+            apiKey,
+            model: model || undefined,
+          },
         }),
       });
       const data = await res.json();
@@ -54,6 +71,12 @@ export function AIAssistantPanel({
   }
 
   const tasks = [
+    {
+      id: "search_chords" as AITask,
+      label: t.searchChords,
+      icon: Search,
+      desc: "Search the web for correct chords",
+    },
     {
       id: "suggest_chords" as AITask,
       label: t.suggestChords,
@@ -105,13 +128,17 @@ export function AIAssistantPanel({
         ))}
       </div>
 
-      {!sheetContent && (
+      {(activeTask === "search_chords" || !sheetContent) && (
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Enter lyrics, a theme, or describe what you want..."
+          placeholder={
+            activeTask === "search_chords"
+              ? "Song title and artist, e.g. 'Hotel California Eagles'"
+              : "Enter lyrics, a theme, or describe what you want..."
+          }
           className="w-full rounded border border-border bg-transparent p-2 text-sm outline-none placeholder:text-muted-foreground"
-          rows={3}
+          rows={activeTask === "search_chords" ? 1 : 3}
         />
       )}
 

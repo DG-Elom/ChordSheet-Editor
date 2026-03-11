@@ -5,13 +5,16 @@ import {
   buildLyricsGenerationPrompt,
   buildHarmonizationPrompt,
   buildHarmonicAnalysisPrompt,
+  buildSearchChordsPrompt,
 } from "@/lib/llm/prompts-extended";
+import { searchAndFetchChords } from "@/lib/llm/web-search";
 import type { LLMProvider } from "@/lib/llm/types";
 import { NextResponse } from "next/server";
 
 type TaskType =
   | "detect_sections"
   | "suggest_chords"
+  | "search_chords"
   | "test_connection"
   | "generate_lyrics"
   | "harmonize"
@@ -63,6 +66,14 @@ export async function POST(request: Request) {
       } catch {
         return NextResponse.json({ content: response.content });
       }
+    }
+
+    if (task === "search_chords") {
+      const query = content || payload || "";
+      const searchResults = await searchAndFetchChords(query);
+      const messages = buildSearchChordsPrompt(query, searchResults, key);
+      const response = await adapter.chat(messages, { maxTokens: 4096 });
+      return NextResponse.json({ result: response.content });
     }
 
     if (task === "suggest_chords") {
