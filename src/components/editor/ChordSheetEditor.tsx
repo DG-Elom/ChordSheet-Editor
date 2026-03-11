@@ -22,6 +22,14 @@ interface ChordSheetEditorProps {
   sections: Section[];
 }
 
+// Editing state for an existing chord
+interface EditingChordState {
+  from: number;
+  to: number;
+  chordId: string;
+  displayString: string;
+}
+
 export function ChordSheetEditor({ sheet, sections }: ChordSheetEditorProps) {
   const {
     setSheet,
@@ -34,6 +42,8 @@ export function ChordSheetEditor({ sheet, sections }: ChordSheetEditorProps) {
   } = useEditorStore();
   const [chordPopoverPos, setChordPopoverPos] = useState<{ x: number; y: number } | null>(null);
   const [chordSuggestions] = useState<string[]>(() => getChordSuggestions("", 20));
+  const [editingChord, setEditingChord] = useState<EditingChordState | null>(null);
+  const [popoverKey, setPopoverKey] = useState(0);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -79,6 +89,8 @@ export function ChordSheetEditor({ sheet, sections }: ChordSheetEditorProps) {
 
         const coords = view.coordsAtPos(pos);
         setChordPopoverPos({ x: coords.left, y: coords.top });
+        setEditingChord(null);
+        setPopoverKey((k) => k + 1);
         return true;
       },
     },
@@ -120,6 +132,74 @@ export function ChordSheetEditor({ sheet, sections }: ChordSheetEditorProps) {
     return () => editor.view.dom.removeEventListener("chord-insert-toggle", handler);
   }, [editor, chordInsertMode, toggleChordInsertMode]);
 
+  // Listen for chord-edit custom events from chord widget clicks
+  useEffect(() => {
+    if (!editor) return;
+
+    const handler = (e: Event) => {
+      const { chordId } = (e as CustomEvent).detail;
+
+      // Find the chord mark in the document by its ID
+      let foundPos = -1;
+      let foundNodeSize = 0;
+      let foundAttrs: Record<string, unknown> = {};
+      editor.state.doc.descendants((node, pos) => {
+        if (foundPos >= 0) return false;
+        if (!node.isInline || !node.marks.length) return;
+        for (const mark of node.marks) {
+          if (mark.type.name === "chordMark" && mark.attrs.id === chordId) {
+            foundPos = pos;
+            foundNodeSize = node.nodeSize;
+            foundAttrs = mark.attrs as Record<string, unknown>;
+            return false;
+          }
+        }
+      });
+
+      if (foundPos >= 0) {
+        const coords = editor.view.coordsAtPos(foundPos);
+
+        // Build display string for initial value
+        const qualityMap: Record<string, string> = {
+          maj: "",
+          min: "m",
+          dim: "dim",
+          aug: "aug",
+          sus2: "sus2",
+          sus4: "sus4",
+          "7": "7",
+          maj7: "maj7",
+          min7: "m7",
+          dim7: "dim7",
+          aug7: "aug7",
+          add9: "add9",
+          "9": "9",
+          "6": "6",
+          min6: "m6",
+          "11": "11",
+          "13": "13",
+        };
+        const quality = (foundAttrs.quality as string) || "";
+        const suffix = qualityMap[quality] ?? quality;
+        let display = (foundAttrs.root as string) + suffix;
+        if (foundAttrs.bass) display += "/" + (foundAttrs.bass as string);
+
+        setEditingChord({
+          from: foundPos,
+          to: foundPos + foundNodeSize,
+          chordId: chordId as string,
+          displayString: display,
+        });
+        setChordPopoverPos({ x: coords.left, y: coords.top });
+        setPopoverKey((k) => k + 1);
+      }
+    };
+
+    editor.view.dom.addEventListener("chord-edit", handler);
+    return () => editor.view.dom.removeEventListener("chord-edit", handler);
+  }, [editor]);
+
+  // Handle chord submission (new or edit)
   const handleChordSubmit = useCallback(
     (chordString: string) => {
       if (!editor) return;
@@ -127,39 +207,73 @@ export function ChordSheetEditor({ sheet, sections }: ChordSheetEditorProps) {
       const parsed = parseChord(chordString);
       if (!parsed) return;
 
-      const { from, to } = editor.state.selection;
-      if (from === to) {
-        const end = Math.min(from + 1, editor.state.doc.content.size);
+      if (editingChord) {
+        // Editing existing chord: update the mark at the known range
         editor
           .chain()
           .focus()
-          .setTextSelection({ from, to: end })
+          .setTextSelection({ from: editingChord.from, to: editingChord.to })
           .setChord({
             root: parsed.root,
             quality: parsed.quality,
             bass: parsed.bass,
           })
-          .setTextSelection(end)
+          .setTextSelection(editingChord.to)
           .run();
       } else {
-        editor
-          .chain()
-          .focus()
-          .setChord({
-            root: parsed.root,
-            quality: parsed.quality,
-            bass: parsed.bass,
-          })
-          .run();
+        // New chord insertion
+        const { from, to } = editor.state.selection;
+        if (from === to) {
+          const end = Math.min(from + 1, editor.state.doc.content.size);
+          editor
+            .chain()
+            .focus()
+            .setTextSelection({ from, to: end })
+            .setChord({
+              root: parsed.root,
+              quality: parsed.quality,
+              bass: parsed.bass,
+            })
+            .setTextSelection(end)
+            .run();
+        } else {
+          editor
+            .chain()
+            .focus()
+            .setChord({
+              root: parsed.root,
+              quality: parsed.quality,
+              bass: parsed.bass,
+            })
+            .run();
+        }
       }
 
       setChordPopoverPos(null);
+      setEditingChord(null);
     },
-    [editor],
+    [editor, editingChord],
   );
+
+  // Handle chord deletion
+  const handleChordDelete = useCallback(() => {
+    if (!editor || !editingChord) return;
+
+    editor
+      .chain()
+      .focus()
+      .setTextSelection({ from: editingChord.from, to: editingChord.to })
+      .unsetChord()
+      .setTextSelection(editingChord.to)
+      .run();
+
+    setChordPopoverPos(null);
+    setEditingChord(null);
+  }, [editor, editingChord]);
 
   const handleChordPopoverClose = useCallback(() => {
     setChordPopoverPos(null);
+    setEditingChord(null);
     editor?.commands.focus();
   }, [editor]);
 
@@ -192,11 +306,15 @@ export function ChordSheetEditor({ sheet, sections }: ChordSheetEditorProps) {
       </div>
       {editor && (
         <ChordPopover
+          key={popoverKey}
           editor={editor}
           position={chordPopoverPos}
           onClose={handleChordPopoverClose}
           onSubmit={handleChordSubmit}
+          onDelete={editingChord ? handleChordDelete : undefined}
           suggestions={chordSuggestions}
+          initialValue={editingChord?.displayString ?? ""}
+          isEditing={!!editingChord}
         />
       )}
     </div>

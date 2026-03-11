@@ -2,14 +2,17 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import type { Editor } from "@tiptap/react";
-import { X } from "lucide-react";
+import { X, Trash2 } from "lucide-react";
 
 interface ChordPopoverProps {
   editor: Editor;
   position: { x: number; y: number } | null;
   onClose: () => void;
   onSubmit: (chordString: string) => void;
+  onDelete?: () => void;
   suggestions?: string[];
+  initialValue?: string;
+  isEditing?: boolean;
 }
 
 export function ChordPopover({
@@ -17,9 +20,12 @@ export function ChordPopover({
   position,
   onClose,
   onSubmit,
+  onDelete,
   suggestions = [],
+  initialValue = "",
+  isEditing = false,
 }: ChordPopoverProps) {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(initialValue);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -28,11 +34,10 @@ export function ChordPopover({
     return suggestions.filter((s) => s.toLowerCase().startsWith(value.toLowerCase())).slice(0, 8);
   }, [value, suggestions]);
 
+  // Focus input when component mounts (popover opens)
   useEffect(() => {
-    if (position && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [position]);
+    inputRef.current?.focus();
+  }, []);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -66,8 +71,13 @@ export function ChordPopover({
         setValue(filteredSuggestions[selectedIndex]);
         return;
       }
+      if (e.key === "Backspace" && value === "" && isEditing && onDelete) {
+        e.preventDefault();
+        onDelete();
+        return;
+      }
     },
-    [filteredSuggestions, selectedIndex, value, onSubmit, onClose, editor],
+    [filteredSuggestions, selectedIndex, value, onSubmit, onClose, onDelete, isEditing, editor],
   );
 
   if (!position) return null;
@@ -87,9 +97,18 @@ export function ChordPopover({
             setSelectedIndex(0);
           }}
           onKeyDown={handleKeyDown}
-          placeholder="Chord (e.g. Am7)"
+          placeholder={isEditing ? "Edit chord..." : "Chord (e.g. Am7)"}
           className="w-32 rounded bg-background px-2 py-1 text-sm outline-none placeholder:text-muted-foreground"
         />
+        {isEditing && onDelete && (
+          <button
+            onClick={onDelete}
+            className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+            title="Remove chord"
+          >
+            <Trash2 className="h-3 w-3" />
+          </button>
+        )}
         <button onClick={onClose} className="rounded p-1 text-muted-foreground hover:bg-accent">
           <X className="h-3 w-3" />
         </button>

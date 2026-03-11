@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Plus, FileMusic, Clock, Trash2 } from "lucide-react";
 import { useDeleteSheet } from "@/lib/hooks/use-chord-sheet";
 import type { ChordSheet } from "@/types/database.types";
+import { useT } from "@/lib/i18n";
 
 interface SheetListClientProps {
   sheets: ChordSheet[];
@@ -11,33 +12,32 @@ interface SheetListClientProps {
 
 export function SheetListClient({ sheets }: SheetListClientProps) {
   const deleteSheet = useDeleteSheet();
+  const t = useT();
 
   return (
     <div className="mx-auto max-w-4xl p-6">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">My Sheets</h1>
+        <h1 className="text-2xl font-bold">{t.mySheets}</h1>
         <Link
           href="/sheets/new"
           className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
         >
           <Plus className="h-4 w-4" />
-          New Sheet
+          {t.newSheet}
         </Link>
       </div>
 
       {sheets.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16">
           <FileMusic className="mb-4 h-12 w-12 text-muted-foreground" />
-          <p className="mb-2 text-lg font-medium">No chord sheets yet</p>
-          <p className="mb-4 text-sm text-muted-foreground">
-            Create your first chord sheet to get started
-          </p>
+          <p className="mb-2 text-lg font-medium">{t.noSheetsYet}</p>
+          <p className="mb-4 text-sm text-muted-foreground">{t.createFirstSheet}</p>
           <Link
             href="/sheets/new"
             className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
           >
             <Plus className="h-4 w-4" />
-            Create Sheet
+            {t.createSheet}
           </Link>
         </div>
       ) : (
@@ -69,7 +69,7 @@ export function SheetListClient({ sheets }: SheetListClientProps) {
                 <button
                   onClick={(e) => {
                     e.preventDefault();
-                    if (confirm("Delete this sheet?")) {
+                    if (confirm(t.deleteConfirm)) {
                       deleteSheet.mutate(sheet.id);
                     }
                   }}

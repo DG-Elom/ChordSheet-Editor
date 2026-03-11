@@ -52,8 +52,22 @@ function createChordWidget(display: string, chordId: string): HTMLElement {
   widget.textContent = display;
   widget.dataset.chordId = chordId;
   widget.setAttribute("contenteditable", "false");
-  widget.setAttribute("role", "img");
+  widget.setAttribute("role", "button");
   widget.setAttribute("aria-label", `Chord: ${display}`);
+  widget.style.cursor = "pointer";
+
+  // Clicking on a chord widget dispatches a custom event to open the edit popover
+  widget.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    widget.dispatchEvent(
+      new CustomEvent("chord-edit", {
+        bubbles: true,
+        detail: { chordId },
+      }),
+    );
+  });
+
   return widget;
 }
 

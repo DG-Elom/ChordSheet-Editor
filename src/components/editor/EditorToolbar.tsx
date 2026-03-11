@@ -12,6 +12,7 @@ import {
   Redo2,
 } from "lucide-react";
 import type { Editor } from "@tiptap/react";
+import { useT } from "@/lib/i18n";
 
 interface EditorToolbarProps {
   editor: Editor | null;
@@ -27,6 +28,7 @@ export function EditorToolbar({
   onTransposeDown,
 }: EditorToolbarProps) {
   const { focusMode, toggleFocusMode, chordInsertMode, toggleChordInsertMode } = useEditorStore();
+  const t = useT();
 
   if (!editor) return null;
 
@@ -36,7 +38,7 @@ export function EditorToolbar({
         onClick={() => editor.chain().focus().undo().run()}
         disabled={!editor.can().undo()}
         className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-30"
-        title="Undo (Ctrl+Z)"
+        title={t.undo + " (Ctrl+Z)"}
       >
         <Undo2 className="h-4 w-4" />
       </button>
@@ -45,7 +47,7 @@ export function EditorToolbar({
         onClick={() => editor.chain().focus().redo().run()}
         disabled={!editor.can().redo()}
         className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-30"
-        title="Redo (Ctrl+Shift+Z)"
+        title={t.redo + " (Ctrl+Shift+Z)"}
       >
         <Redo2 className="h-4 w-4" />
       </button>
@@ -55,7 +57,7 @@ export function EditorToolbar({
       <button
         onClick={toggleChordInsertMode}
         className={`rounded p-1.5 ${chordInsertMode ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`}
-        title="Insert Chord (Ctrl+K)"
+        title={t.insertChord + " (Ctrl+K)"}
       >
         <MousePointerClick className="h-4 w-4" />
       </button>
@@ -63,7 +65,7 @@ export function EditorToolbar({
       <button
         onClick={onAddSection}
         className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-        title="Add Section (Ctrl+Enter)"
+        title={t.addSection + " (Ctrl+Enter)"}
       >
         <Plus className="h-4 w-4" />
       </button>
@@ -73,7 +75,7 @@ export function EditorToolbar({
       <button
         onClick={onTransposeDown}
         className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-        title="Transpose Down (Ctrl+Down)"
+        title={t.transposeDown + " (Ctrl+Down)"}
       >
         <ArrowDown className="h-4 w-4" />
       </button>
@@ -81,7 +83,7 @@ export function EditorToolbar({
       <button
         onClick={onTransposeUp}
         className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-        title="Transpose Up (Ctrl+Up)"
+        title={t.transposeUp + " (Ctrl+Up)"}
       >
         <ArrowUp className="h-4 w-4" />
       </button>
@@ -90,7 +92,7 @@ export function EditorToolbar({
         <button
           onClick={toggleFocusMode}
           className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-          title="Toggle Focus Mode"
+          title={t.focusMode}
         >
           {focusMode ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
         </button>

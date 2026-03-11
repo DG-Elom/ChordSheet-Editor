@@ -20,6 +20,8 @@ export const en: Dictionary = {
   noAccount: "Don't have an account?",
   haveAccount: "Already have an account?",
   orContinueWith: "or continue with",
+  createAccount: "Create your account",
+  sending: "Sending...",
 
   welcomeBackUser: "Welcome back",
   dashboardOverview: "Here is an overview of your chord sheets.",
@@ -31,6 +33,9 @@ export const en: Dictionary = {
   recentSheets: "Recent Sheets",
   noSheetsYet: "No sheets yet",
   createFirstSheet: "Create your first chord sheet to get started.",
+  newSheet: "New Sheet",
+  createSheet: "Create Sheet",
+  deleteConfirm: "Delete this sheet?",
   justNow: "Just now",
   minutesAgo: "m ago",
   hoursAgo: "h ago",
@@ -57,6 +62,8 @@ export const en: Dictionary = {
   focusMode: "Toggle Focus Mode",
   undo: "Undo",
   redo: "Redo",
+  editChord: "Edit chord",
+  removeChord: "Remove chord",
 
   exportSheet: "Export Sheet",
   format: "Format",

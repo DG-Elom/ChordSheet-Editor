@@ -22,6 +22,8 @@ export interface Dictionary {
   noAccount: string;
   haveAccount: string;
   orContinueWith: string;
+  createAccount: string;
+  sending: string;
 
   // Dashboard
   welcomeBackUser: string;
@@ -34,6 +36,9 @@ export interface Dictionary {
   recentSheets: string;
   noSheetsYet: string;
   createFirstSheet: string;
+  newSheet: string;
+  createSheet: string;
+  deleteConfirm: string;
   justNow: string;
   minutesAgo: string;
   hoursAgo: string;
@@ -62,6 +67,8 @@ export interface Dictionary {
   focusMode: string;
   undo: string;
   redo: string;
+  editChord: string;
+  removeChord: string;
 
   // Export
   exportSheet: string;

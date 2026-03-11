@@ -3,6 +3,8 @@ import { createElement } from "react";
 import type { ChordSheet, Section } from "@/types/database.types";
 import type { ExportOptions } from "@/types/editor.types";
 import { SECTION_CONFIGS } from "@/types/editor.types";
+import { parseParagraph, buildChordAndLyricLines } from "./shared";
+import type { TipTapDoc } from "./shared";
 
 // ---------------------------------------------------------------------------
 // Font sizes by preset
@@ -25,136 +27,6 @@ const PAGE_SIZES: Record<ExportOptions["pageSize"], { width: number; height: num
   A4: { width: 595.28, height: 841.89 },
   US_LETTER: { width: 612, height: 792 },
 };
-
-// ---------------------------------------------------------------------------
-// TipTap JSON types (subset used for export)
-// ---------------------------------------------------------------------------
-
-interface TipTapMark {
-  type: string;
-  attrs?: Record<string, unknown>;
-}
-
-interface TipTapTextNode {
-  type: "text";
-  text: string;
-  marks?: TipTapMark[];
-}
-
-interface TipTapParagraphNode {
-  type: "paragraph";
-  content?: TipTapTextNode[];
-}
-
-interface TipTapDoc {
-  type: "doc";
-  content?: TipTapParagraphNode[];
-}
-
-// ---------------------------------------------------------------------------
-// Chord formatting helper
-// ---------------------------------------------------------------------------
-
-function formatChord(attrs: Record<string, unknown>): string {
-  const root = (attrs.root as string) || "";
-  const quality = (attrs.quality as string) || "";
-  const bass = attrs.bass as string | null;
-
-  // Map quality names to display symbols
-  const qualityMap: Record<string, string> = {
-    maj: "",
-    min: "m",
-    dim: "dim",
-    aug: "aug",
-    sus2: "sus2",
-    sus4: "sus4",
-    "7": "7",
-    maj7: "maj7",
-    min7: "m7",
-    dim7: "dim7",
-    aug7: "aug7",
-    add9: "add9",
-    "9": "9",
-    "6": "6",
-    min6: "m6",
-    "11": "11",
-    "13": "13",
-  };
-
-  const qualityDisplay = qualityMap[quality] ?? quality;
-  let chord = `${root}${qualityDisplay}`;
-  if (bass) {
-    chord += `/${bass}`;
-  }
-  return chord;
-}
-
-// ---------------------------------------------------------------------------
-// Parse a TipTap paragraph into chord/lyric pairs
-// ---------------------------------------------------------------------------
-
-interface ChordLyricSegment {
-  chord: string; // "" when no chord above this text
-  text: string;
-}
-
-function parseParagraph(paragraph: TipTapParagraphNode): {
-  hasChords: boolean;
-  segments: ChordLyricSegment[];
-} {
-  const segments: ChordLyricSegment[] = [];
-  let hasChords = false;
-
-  if (!paragraph.content) {
-    return { hasChords: false, segments: [{ chord: "", text: "" }] };
-  }
-
-  for (const node of paragraph.content) {
-    if (node.type !== "text") continue;
-
-    const chordMark = node.marks?.find((m) => m.type === "chord");
-    if (chordMark && chordMark.attrs) {
-      hasChords = true;
-      segments.push({
-        chord: formatChord(chordMark.attrs),
-        text: node.text,
-      });
-    } else {
-      segments.push({ chord: "", text: node.text });
-    }
-  }
-
-  return { hasChords, segments };
-}
-
-// ---------------------------------------------------------------------------
-// Build a chord-line string and a lyric-line string from segments
-// ---------------------------------------------------------------------------
-
-function buildChordAndLyricLines(segments: ChordLyricSegment[]): {
-  chordLine: string;
-  lyricLine: string;
-} {
-  let chordLine = "";
-  let lyricLine = "";
-
-  for (const seg of segments) {
-    const textLen = seg.text.length;
-    const chordLen = seg.chord.length;
-
-    if (seg.chord) {
-      // Pad chord to at least the width of the text beneath it (+ 1 space gap)
-      chordLine += seg.chord + " ".repeat(Math.max(0, textLen - chordLen + 1));
-    } else {
-      // No chord over this segment -- fill chord line with spaces
-      chordLine += " ".repeat(textLen);
-    }
-
-    lyricLine += seg.text;
-  }
-
-  return { chordLine: chordLine.trimEnd(), lyricLine };
-}
 
 // ---------------------------------------------------------------------------
 // React-PDF component tree (built using createElement)

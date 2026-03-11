@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Music, Mail, Github } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useT } from "@/lib/i18n";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -11,6 +12,7 @@ export default function LoginPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const t = useT();
   const supabase = createClient();
 
   const handleMagicLink = async (e: React.FormEvent) => {
@@ -50,13 +52,13 @@ export default function LoginPage() {
           <Music className="h-8 w-8 text-primary" />
           <h1 className="text-2xl font-bold text-card-foreground">ChordSheet Editor</h1>
         </div>
-        <p className="text-muted-foreground">Welcome back</p>
+        <p className="text-muted-foreground">{t.welcomeBack}</p>
       </div>
 
       <form onSubmit={handleMagicLink} className="space-y-4">
         <div>
           <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-card-foreground">
-            Email address
+            {t.email}
           </label>
           <input
             id="email"
@@ -75,7 +77,7 @@ export default function LoginPage() {
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
         >
           <Mail className="h-4 w-4" />
-          {loading ? "Sending..." : "Send magic link"}
+          {loading ? t.sending : t.sendMagicLink}
         </button>
       </form>
 
@@ -84,7 +86,7 @@ export default function LoginPage() {
 
       <div className="my-6 flex items-center gap-3">
         <div className="h-px flex-1 bg-border" />
-        <span className="text-xs text-muted-foreground">or continue with</span>
+        <span className="text-xs text-muted-foreground">{t.orContinueWith}</span>
         <div className="h-px flex-1 bg-border" />
       </div>
 
@@ -126,9 +128,9 @@ export default function LoginPage() {
       </div>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        Don&apos;t have an account?{" "}
+        {t.noAccount}{" "}
         <Link href="/signup" className="text-primary hover:underline">
-          Sign up
+          {t.signup}
         </Link>
       </p>
     </div>

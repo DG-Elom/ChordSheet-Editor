@@ -20,6 +20,8 @@ export const fr: Dictionary = {
   noAccount: "Pas encore de compte ?",
   haveAccount: "Vous avez deja un compte ?",
   orContinueWith: "ou continuer avec",
+  createAccount: "Créez votre compte",
+  sending: "Envoi...",
 
   welcomeBackUser: "Bienvenue",
   dashboardOverview: "Voici un apercu de vos grilles d'accords.",
@@ -31,6 +33,9 @@ export const fr: Dictionary = {
   recentSheets: "Grilles recentes",
   noSheetsYet: "Aucune grille",
   createFirstSheet: "Creez votre premiere grille d'accords.",
+  newSheet: "Nouvelle grille",
+  createSheet: "Créer une grille",
+  deleteConfirm: "Supprimer cette grille ?",
   justNow: "A l'instant",
   minutesAgo: "min",
   hoursAgo: "h",
@@ -57,6 +62,8 @@ export const fr: Dictionary = {
   focusMode: "Mode focus",
   undo: "Annuler",
   redo: "Retablir",
+  editChord: "Modifier l'accord",
+  removeChord: "Supprimer l'accord",
 
   exportSheet: "Exporter la grille",
   format: "Format",
