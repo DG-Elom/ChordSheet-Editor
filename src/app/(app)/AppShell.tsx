@@ -10,6 +10,8 @@ const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/sheets": "My Sheets",
   "/sheets/import": "Import Sheet",
+  "/sheets/favorites": "Favorites",
+  "/sheets/setlists": "Setlists",
   "/settings": "Settings",
 };
 

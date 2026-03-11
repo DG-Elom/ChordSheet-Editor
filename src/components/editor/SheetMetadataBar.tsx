@@ -2,11 +2,13 @@
 
 import { useEditorStore } from "@/lib/store/editor-store";
 import { useUserStore } from "@/lib/store/user-store";
-import { Music, Save, Loader2, Youtube, ExternalLink } from "lucide-react";
+import { Music, Save, Loader2, Youtube, ExternalLink, Wand2 } from "lucide-react";
 import { useT } from "@/lib/i18n";
+import { detectKey } from "@/lib/chord-engine/key-detector";
+import { parseChord } from "@/lib/chord-engine";
 
 export function SheetMetadataBar() {
-  const { sheet, updateSheet, isDirty, isSaving } = useEditorStore();
+  const { sheet, updateSheet, isDirty, isSaving, editorContent } = useEditorStore();
   const notation = useUserStore((s) => s.notation);
   const t = useT();
 
@@ -44,6 +46,47 @@ export function SheetMetadataBar() {
           placeholder={notation === "latin" ? "Do" : "C"}
           className="w-12 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
         />
+        <button
+          onClick={() => {
+            // Extract chords from editor content for key detection
+            const chordStrings: string[] = [];
+            if (editorContent?.content) {
+              for (const section of editorContent.content) {
+                if (!section.content) continue;
+                for (const p of section.content) {
+                  if (!p.content) continue;
+                  for (const inline of p.content) {
+                    const marks = inline.marks as
+                      | Array<{ type: string; attrs?: Record<string, string> }>
+                      | undefined;
+                    if (!marks) continue;
+                    for (const mark of marks) {
+                      if (mark.type === "chordMark" && mark.attrs) {
+                        const q = mark.attrs.quality === "maj" ? "" : mark.attrs.quality;
+                        chordStrings.push(mark.attrs.root + q);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            if (chordStrings.length > 0) {
+              const parsedChords = chordStrings.map((c) => parseChord(c)).filter(Boolean) as Array<{
+                root: string;
+                quality: string;
+                bass: string | null;
+              }>;
+              if (parsedChords.length > 0) {
+                const detected = detectKey(parsedChords);
+                if (detected) updateSheet({ song_key: detected.key });
+              }
+            }
+          }}
+          className="rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+          title={t.detectKey}
+        >
+          <Wand2 className="h-3 w-3" />
+        </button>
       </div>
 
       <div className="flex items-center gap-1">

@@ -6,6 +6,7 @@ import { Upload, FileText, Loader2, Sparkles, AlertCircle } from "lucide-react";
 import { useT } from "@/lib/i18n";
 import { useLLMSettingsStore } from "@/lib/llm/settings-store";
 import { ImportPreview } from "@/components/import/ImportPreview";
+import { ImportFromUrl } from "@/components/import/ImportFromUrl";
 import type { ParsedSheet } from "@/lib/import/types";
 
 export function ImportPageClient() {
@@ -230,6 +231,15 @@ export function ImportPageClient() {
           />
         </div>
       </div>
+
+      {/* Import from URL */}
+      <ImportFromUrl
+        onImport={(content, urlTitle) => {
+          setRawText(content);
+          if (urlTitle && !title) setTitle(urlTitle);
+          parseText(content);
+        }}
+      />
 
       {/* Two-panel layout */}
       <div className="grid gap-6 lg:grid-cols-2">
