@@ -19,6 +19,7 @@ import { CommentsPanel } from "@/components/comments/CommentsPanel";
 import { VersionHistory } from "@/components/history/VersionHistory";
 import { YouTubePlayer } from "@/components/youtube/YouTubePlayer";
 import { CollaborationIndicator } from "@/components/collaboration/CollaborationIndicator";
+import { ChordDiagram } from "@/components/chords/ChordDiagram";
 import { ChordMark } from "@/extensions/chord-mark";
 import { createChordDecorationPlugin } from "@/extensions/chord-mark";
 import { SectionNode } from "@/extensions/section-node";
@@ -50,6 +51,7 @@ export function ChordSheetEditor({ sheet, sections }: ChordSheetEditorProps) {
     focusMode,
     chordInsertMode,
     toggleChordInsertMode,
+    editorContent,
   } = useEditorStore();
   const [chordPopoverPos, setChordPopoverPos] = useState<{ x: number; y: number } | null>(null);
   const [chordSuggestions] = useState<string[]>(() => getChordSuggestions("", 20));
@@ -62,7 +64,9 @@ export function ChordSheetEditor({ sheet, sections }: ChordSheetEditorProps) {
   const [showMetronome, setShowMetronome] = useState(false);
   const [showAIPanel, setShowAIPanel] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [showChordDiagrams, setShowChordDiagrams] = useState(false);
   const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
+  const [editorFontSize, setEditorFontSize] = useState(100);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -296,6 +300,43 @@ export function ChordSheetEditor({ sheet, sections }: ChordSheetEditorProps) {
     editor?.commands.focus();
   }, [editor]);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Ctrl+Shift+P: Performance mode
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "P") {
+        e.preventDefault();
+        setPerformanceMode(true);
+      }
+      // Ctrl+Shift+M: Toggle metronome
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "M") {
+        e.preventDefault();
+        setShowMetronome((p) => !p);
+      }
+      // Ctrl+= / Ctrl+-: Zoom in/out
+      if ((e.ctrlKey || e.metaKey) && (e.key === "=" || e.key === "+")) {
+        e.preventDefault();
+        setEditorFontSize((p) => Math.min(200, p + 10));
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === "-") {
+        e.preventDefault();
+        setEditorFontSize((p) => Math.max(50, p - 10));
+      }
+      // Ctrl+0: Reset zoom
+      if ((e.ctrlKey || e.metaKey) && e.key === "0") {
+        e.preventDefault();
+        setEditorFontSize(100);
+      }
+      // Ctrl+Shift+D: Toggle chord diagrams
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "D") {
+        e.preventDefault();
+        setShowChordDiagrams((p) => !p);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [setPerformanceMode]);
+
   const handleAddSection = useCallback(() => {
     if (!editor) return;
     editor.commands.insertSection({ sectionType: "verse" });
@@ -338,8 +379,9 @@ export function ChordSheetEditor({ sheet, sections }: ChordSheetEditorProps) {
         onQRCode={() => setQrOpen(true)}
       />
       <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto" style={{ fontSize: `${editorFontSize}%` }}>
           <EditorContent editor={editor} />
+          {showChordDiagrams && <ChordDiagramsPanel editorContent={editorContent} />}
         </div>
         {(showMetronome || showAIPanel || showComments || sheet.youtube_url) && (
           <div className="w-80 space-y-3 overflow-y-auto border-l border-border p-3">
@@ -412,6 +454,54 @@ function transposeAllChords(editor: import("@tiptap/react").Editor, semitones: n
   if (modified) {
     editor.view.dispatch(tr);
   }
+}
+
+function ChordDiagramsPanel({ editorContent }: { editorContent: JSONContent | null }) {
+  // Extract unique chords from editor content
+  const chords = new Map<string, { root: string; quality: string }>();
+  if (editorContent?.content) {
+    for (const section of editorContent.content) {
+      if (!section.content) continue;
+      for (const p of section.content) {
+        if (!p.content) continue;
+        for (const inline of p.content) {
+          const marks = inline.marks as
+            | Array<{ type: string; attrs?: Record<string, string> }>
+            | undefined;
+          if (!marks) continue;
+          for (const mark of marks) {
+            if (mark.type === "chordMark" && mark.attrs) {
+              const key = `${mark.attrs.root}${mark.attrs.quality}`;
+              if (!chords.has(key)) {
+                chords.set(key, { root: mark.attrs.root, quality: mark.attrs.quality });
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (chords.size === 0) return null;
+
+  return (
+    <div className="border-t border-border bg-card/50 px-6 py-4">
+      <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        Chord Diagrams
+      </h4>
+      <div className="flex flex-wrap gap-4">
+        {Array.from(chords.values()).map(({ root, quality }) => (
+          <div key={`${root}${quality}`} className="flex flex-col items-center gap-1">
+            <span className="text-xs font-bold text-foreground">
+              {root}
+              {quality === "maj" ? "" : quality}
+            </span>
+            <ChordDiagram root={root} quality={quality} instrument="guitar" size={60} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function buildEditorContent(sections: Section[]): JSONContent {
