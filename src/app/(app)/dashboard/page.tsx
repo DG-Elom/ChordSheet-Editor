@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Plus, FileMusic, Download, Share2, Clock, Upload, Youtube } from "lucide-react";
+import { Plus, FileMusic, Star, Share2, Clock, Upload, Youtube } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -35,8 +35,11 @@ export default async function DashboardPage() {
     .eq("created_by", user.id)
     .eq("is_active", true);
 
+  const { data: favorites } = await supabase.from("favorites").select("id").eq("owner_id", user.id);
+
   const totalSheets = sheets?.length ?? 0;
   const totalShares = shares?.length ?? 0;
+  const totalFavorites = favorites?.length ?? 0;
   const recentSheets = sheets?.slice(0, 6) ?? [];
 
   return (
@@ -66,10 +69,11 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats cards */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-4">
         <StatCard icon={FileMusic} label="Total Sheets" value={String(totalSheets)} />
-        <StatCard icon={Download} label="Recent Exports" value="0" />
+        <StatCard icon={Star} label="Favorites" value={String(totalFavorites)} />
         <StatCard icon={Share2} label="Shared" value={String(totalShares)} />
+        <StatCard icon={FileMusic} label="Recent" value={String(recentSheets.length)} />
       </div>
 
       {/* Recent sheets */}

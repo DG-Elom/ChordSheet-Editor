@@ -20,6 +20,9 @@ import { VersionHistory } from "@/components/history/VersionHistory";
 import { YouTubePlayer } from "@/components/youtube/YouTubePlayer";
 import { CollaborationIndicator } from "@/components/collaboration/CollaborationIndicator";
 import { ChordDiagram } from "@/components/chords/ChordDiagram";
+import { CapoSelector } from "@/components/chords/CapoSelector";
+import { TagManager } from "@/components/tags/TagManager";
+import { SetlistDialog } from "@/components/setlist/SetlistDialog";
 import { ChordMark } from "@/extensions/chord-mark";
 import { createChordDecorationPlugin } from "@/extensions/chord-mark";
 import { SectionNode } from "@/extensions/section-node";
@@ -65,6 +68,8 @@ export function ChordSheetEditor({ sheet, sections }: ChordSheetEditorProps) {
   const [showAIPanel, setShowAIPanel] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [showChordDiagrams, setShowChordDiagrams] = useState(false);
+  const [showCapo, setShowCapo] = useState(false);
+  const [setlistOpen, setSetlistOpen] = useState(false);
   const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
   const [editorFontSize, setEditorFontSize] = useState(100);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -377,14 +382,23 @@ export function ChordSheetEditor({ sheet, sections }: ChordSheetEditorProps) {
         onComments={() => setShowComments(!showComments)}
         onVersionHistory={() => setVersionHistoryOpen(true)}
         onQRCode={() => setQrOpen(true)}
+        onCapo={() => setShowCapo((p) => !p)}
+        onSetlist={() => setSetlistOpen(true)}
       />
       <div className="flex flex-1 overflow-hidden">
         <div className="flex-1 overflow-y-auto" style={{ fontSize: `${editorFontSize}%` }}>
           <EditorContent editor={editor} />
           {showChordDiagrams && <ChordDiagramsPanel editorContent={editorContent} />}
         </div>
-        {(showMetronome || showAIPanel || showComments || sheet.youtube_url) && (
+        {(showMetronome || showAIPanel || showComments || showCapo || sheet.youtube_url) && (
           <div className="w-80 space-y-3 overflow-y-auto border-l border-border p-3">
+            <TagManager sheetId={sheet.id} />
+            {showCapo && (
+              <CapoSelector
+                chords={extractChordsFromContent(editorContent)}
+                songKey={sheet.song_key || undefined}
+              />
+            )}
             {showMetronome && (
               <Metronome initialBpm={sheet.bpm || 120} onClose={() => setShowMetronome(false)} />
             )}
@@ -407,6 +421,7 @@ export function ChordSheetEditor({ sheet, sections }: ChordSheetEditorProps) {
         open={versionHistoryOpen}
         onClose={() => setVersionHistoryOpen(false)}
       />
+      <SetlistDialog open={setlistOpen} onClose={() => setSetlistOpen(false)} />
       {editor && (
         <ChordPopover
           key={popoverKey}
@@ -422,6 +437,35 @@ export function ChordSheetEditor({ sheet, sections }: ChordSheetEditorProps) {
       )}
     </div>
   );
+}
+
+function extractChordsFromContent(
+  content: JSONContent | null,
+): { root: string; quality: string; bass: string | null }[] {
+  const chords: { root: string; quality: string; bass: string | null }[] = [];
+  if (!content?.content) return chords;
+  for (const section of content.content) {
+    if (!section.content) continue;
+    for (const p of section.content) {
+      if (!p.content) continue;
+      for (const inline of p.content) {
+        const marks = inline.marks as
+          | Array<{ type: string; attrs?: Record<string, string> }>
+          | undefined;
+        if (!marks) continue;
+        for (const mark of marks) {
+          if (mark.type === "chordMark" && mark.attrs) {
+            chords.push({
+              root: mark.attrs.root,
+              quality: mark.attrs.quality,
+              bass: mark.attrs.bass || null,
+            });
+          }
+        }
+      }
+    }
+  }
+  return chords;
 }
 
 function transposeAllChords(editor: import("@tiptap/react").Editor, semitones: number) {

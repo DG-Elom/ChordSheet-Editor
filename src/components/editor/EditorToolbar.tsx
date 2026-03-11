@@ -18,6 +18,8 @@ import {
   MessageSquare,
   History,
   QrCode,
+  Guitar,
+  ListMusic,
 } from "lucide-react";
 import type { Editor } from "@tiptap/react";
 import { useT } from "@/lib/i18n";
@@ -35,6 +37,8 @@ interface EditorToolbarProps {
   onComments?: () => void;
   onVersionHistory?: () => void;
   onQRCode?: () => void;
+  onCapo?: () => void;
+  onSetlist?: () => void;
 }
 
 export function EditorToolbar({
@@ -50,6 +54,8 @@ export function EditorToolbar({
   onComments,
   onVersionHistory,
   onQRCode,
+  onCapo,
+  onSetlist,
 }: EditorToolbarProps) {
   const { focusMode, toggleFocusMode, chordInsertMode, toggleChordInsertMode } = useEditorStore();
   const t = useT();
@@ -123,6 +129,15 @@ export function EditorToolbar({
           <Play className="h-4 w-4" />
         </button>
       )}
+      {onCapo && (
+        <button
+          onClick={onCapo}
+          className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+          title={t.capo}
+        >
+          <Guitar className="h-4 w-4" />
+        </button>
+      )}
       {onMetronome && (
         <button
           onClick={onMetronome}
@@ -159,6 +174,15 @@ export function EditorToolbar({
             title={t.versionHistory}
           >
             <History className="h-4 w-4" />
+          </button>
+        )}
+        {onSetlist && (
+          <button
+            onClick={onSetlist}
+            className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+            title={t.addToSetlist}
+          >
+            <ListMusic className="h-4 w-4" />
           </button>
         )}
         {onQRCode && (
