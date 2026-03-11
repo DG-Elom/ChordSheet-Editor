@@ -186,6 +186,8 @@ export default function SettingsPage() {
               [
                 { value: "en", label: "English" },
                 { value: "fr", label: "Fran\u00e7ais" },
+                { value: "es", label: "Espa\u00f1ol" },
+                { value: "pt", label: "Portugu\u00eas" },
               ] as const
             ).map(({ value, label }) => (
               <button

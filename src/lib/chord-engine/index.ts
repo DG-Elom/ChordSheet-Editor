@@ -23,3 +23,13 @@ export { toLatin, toAngloSaxon, convertNotation } from "./notation";
 
 // Autocomplete
 export { getChordSuggestions } from "./autocomplete";
+
+// Key detector
+export { detectKey } from "./key-detector";
+
+// Capo
+export { getCapoChords, getSoundingKey, suggestCapoPositions } from "./capo";
+
+// Diagrams
+export { getChordDiagram, GUITAR_CHORDS, UKULELE_CHORDS, PIANO_CHORDS } from "./diagrams";
+export type { ChordDiagram, PianoChordData } from "./diagrams";

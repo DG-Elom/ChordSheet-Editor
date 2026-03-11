@@ -5,9 +5,20 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useEditorStore } from "@/lib/store/editor-store";
+import { usePerformanceStore } from "@/lib/store/performance-store";
 import { SheetMetadataBar } from "./SheetMetadataBar";
 import { EditorToolbar } from "./EditorToolbar";
 import { ChordPopover } from "./ChordPopover";
+import { ExportDialog } from "@/components/export/ExportDialog";
+import { ShareDialog } from "@/components/share/ShareDialog";
+import { QRCodeDialog } from "@/components/share/QRCodeDialog";
+import { PerformanceMode } from "@/components/performance/PerformanceMode";
+import { Metronome } from "@/components/metronome/Metronome";
+import { AIAssistantPanel } from "@/components/ai/AIAssistantPanel";
+import { CommentsPanel } from "@/components/comments/CommentsPanel";
+import { VersionHistory } from "@/components/history/VersionHistory";
+import { YouTubePlayer } from "@/components/youtube/YouTubePlayer";
+import { CollaborationIndicator } from "@/components/collaboration/CollaborationIndicator";
 import { ChordMark } from "@/extensions/chord-mark";
 import { createChordDecorationPlugin } from "@/extensions/chord-mark";
 import { SectionNode } from "@/extensions/section-node";
@@ -44,6 +55,14 @@ export function ChordSheetEditor({ sheet, sections }: ChordSheetEditorProps) {
   const [chordSuggestions] = useState<string[]>(() => getChordSuggestions("", 20));
   const [editingChord, setEditingChord] = useState<EditingChordState | null>(null);
   const [popoverKey, setPopoverKey] = useState(0);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
+  const { isActive: performanceMode, setActive: setPerformanceMode } = usePerformanceStore();
+  const [showMetronome, setShowMetronome] = useState(false);
+  const [showAIPanel, setShowAIPanel] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -292,18 +311,60 @@ export function ChordSheetEditor({ sheet, sections }: ChordSheetEditorProps) {
     transposeAllChords(editor, -1);
   }, [editor]);
 
+  if (performanceMode) {
+    return <PerformanceMode />;
+  }
+
   return (
     <div className={`flex flex-col ${focusMode ? "fixed inset-0 z-50 bg-background" : "h-full"}`}>
-      <SheetMetadataBar />
+      <div className="flex items-center justify-between">
+        <SheetMetadataBar />
+        <div className="flex items-center gap-2 pr-2">
+          <CollaborationIndicator sheetId={sheet.id} />
+        </div>
+      </div>
       <EditorToolbar
         editor={editor}
         onAddSection={handleAddSection}
         onTransposeUp={handleTransposeUp}
         onTransposeDown={handleTransposeDown}
+        onExport={() => setExportOpen(true)}
+        onShare={() => setShareOpen(true)}
+        onPerformanceMode={() => setPerformanceMode(true)}
+        onMetronome={() => setShowMetronome(!showMetronome)}
+        onAIPanel={() => setShowAIPanel(!showAIPanel)}
+        onComments={() => setShowComments(!showComments)}
+        onVersionHistory={() => setVersionHistoryOpen(true)}
+        onQRCode={() => setQrOpen(true)}
       />
-      <div className="flex-1 overflow-y-auto">
-        <EditorContent editor={editor} />
+      <div className="flex flex-1 overflow-hidden">
+        <div className="flex-1 overflow-y-auto">
+          <EditorContent editor={editor} />
+        </div>
+        {(showMetronome || showAIPanel || showComments || sheet.youtube_url) && (
+          <div className="w-80 space-y-3 overflow-y-auto border-l border-border p-3">
+            {showMetronome && (
+              <Metronome initialBpm={sheet.bpm || 120} onClose={() => setShowMetronome(false)} />
+            )}
+            {sheet.youtube_url && <YouTubePlayer url={sheet.youtube_url} />}
+            {showAIPanel && (
+              <AIAssistantPanel
+                sheetContent={editor?.getText()}
+                songKey={sheet.song_key || undefined}
+              />
+            )}
+            {showComments && <CommentsPanel sheetId={sheet.id} />}
+          </div>
+        )}
       </div>
+      <ExportDialog sheetId={sheet.id} open={exportOpen} onClose={() => setExportOpen(false)} />
+      <ShareDialog sheetId={sheet.id} open={shareOpen} onClose={() => setShareOpen(false)} />
+      <QRCodeDialog sheetId={sheet.id} open={qrOpen} onClose={() => setQrOpen(false)} />
+      <VersionHistory
+        sheetId={sheet.id}
+        open={versionHistoryOpen}
+        onClose={() => setVersionHistoryOpen(false)}
+      />
       {editor && (
         <ChordPopover
           key={popoverKey}

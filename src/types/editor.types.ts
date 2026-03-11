@@ -27,7 +27,7 @@ export const SECTION_CONFIGS: Record<SectionType, SectionConfig> = {
 };
 
 export interface ExportOptions {
-  format: "pdf" | "docx" | "txt" | "chopro";
+  format: "pdf" | "docx" | "txt" | "chopro" | "png" | "midi";
   pageSize: "A4" | "US_LETTER";
   columns: 1 | 2;
   contentMode: "full" | "chords_only" | "lyrics_only";

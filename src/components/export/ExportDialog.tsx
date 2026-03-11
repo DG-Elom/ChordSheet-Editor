@@ -1,7 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { X, Download, FileText, FileIcon, Loader2, Code, AlignLeft } from "lucide-react";
+import {
+  X,
+  Download,
+  FileText,
+  FileIcon,
+  Loader2,
+  Code,
+  AlignLeft,
+  Image,
+  Music,
+} from "lucide-react";
 import { useExport } from "@/lib/hooks/use-export";
 import { useT } from "@/lib/i18n";
 import type { ExportOptions } from "@/types/editor.types";
@@ -43,13 +53,16 @@ export function ExportDialog({ sheetId, open, onClose }: ExportDialogProps) {
     setOptions((prev) => ({ ...prev, [key]: value }));
   };
 
-  const isPageFormat = options.format === "pdf" || options.format === "docx";
+  const isPageFormat =
+    options.format === "pdf" || options.format === "docx" || options.format === "png";
 
   const formatButtons = [
     { value: "pdf" as const, label: "PDF", icon: FileText },
     { value: "docx" as const, label: "DOCX", icon: FileIcon },
     { value: "txt" as const, label: "TXT", icon: AlignLeft },
     { value: "chopro" as const, label: "ChordPro", icon: Code },
+    { value: "png" as const, label: "PNG", icon: Image },
+    { value: "midi" as const, label: "MIDI", icon: Music },
   ];
 
   return (
@@ -74,7 +87,7 @@ export function ExportDialog({ sheetId, open, onClose }: ExportDialogProps) {
           {/* Format */}
           <fieldset>
             <legend className="mb-2 text-sm font-medium text-card-foreground">{t.format}</legend>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {formatButtons.map(({ value, label, icon: Icon }) => (
                 <button
                   key={value}

@@ -90,3 +90,46 @@ export interface SetListItem {
   custom_key: string | null;
   notes: string | null;
 }
+
+export interface SheetTag {
+  sheet_id: string;
+  tag_id: string;
+}
+
+export interface Folder {
+  id: string;
+  name: string;
+  parent_id: string | null;
+  owner_id: string;
+  created_at: string;
+}
+
+export interface Favorite {
+  id: string;
+  sheet_id: string;
+  owner_id: string;
+  created_at: string;
+}
+
+export interface SheetVersion {
+  id: string;
+  sheet_id: string;
+  version_number: number;
+  content_snapshot: Record<string, unknown>;
+  metadata_snapshot: Record<string, unknown>;
+  created_by: string;
+  created_at: string;
+}
+
+export interface Comment {
+  id: string;
+  sheet_id: string;
+  section_id: string | null;
+  author_id: string;
+  author_name: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type InstrumentType = "guitar" | "ukulele" | "piano";

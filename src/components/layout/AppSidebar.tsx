@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, FileMusic, Settings, LogOut, X, Upload } from "lucide-react";
+import {
+  LayoutDashboard,
+  FileMusic,
+  Settings,
+  LogOut,
+  X,
+  Upload,
+  Star,
+  ListMusic,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
@@ -20,6 +29,8 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
   const navLinks = [
     { href: "/dashboard", label: t.dashboard, icon: LayoutDashboard },
     { href: "/sheets", label: t.mySheets, icon: FileMusic },
+    { href: "/sheets/favorites", label: t.favorites, icon: Star },
+    { href: "/sheets/setlists", label: t.setlists, icon: ListMusic },
     { href: "/sheets/import", label: t.importSheet, icon: Upload },
     { href: "/settings", label: t.settings, icon: Settings },
   ];

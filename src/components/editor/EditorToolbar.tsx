@@ -10,6 +10,14 @@ import {
   ArrowDown,
   Undo2,
   Redo2,
+  Download,
+  Share2,
+  Play,
+  Music,
+  Sparkles,
+  MessageSquare,
+  History,
+  QrCode,
 } from "lucide-react";
 import type { Editor } from "@tiptap/react";
 import { useT } from "@/lib/i18n";
@@ -19,6 +27,14 @@ interface EditorToolbarProps {
   onAddSection: () => void;
   onTransposeUp: () => void;
   onTransposeDown: () => void;
+  onExport: () => void;
+  onShare: () => void;
+  onPerformanceMode?: () => void;
+  onMetronome?: () => void;
+  onAIPanel?: () => void;
+  onComments?: () => void;
+  onVersionHistory?: () => void;
+  onQRCode?: () => void;
 }
 
 export function EditorToolbar({
@@ -26,6 +42,14 @@ export function EditorToolbar({
   onAddSection,
   onTransposeUp,
   onTransposeDown,
+  onExport,
+  onShare,
+  onPerformanceMode,
+  onMetronome,
+  onAIPanel,
+  onComments,
+  onVersionHistory,
+  onQRCode,
 }: EditorToolbarProps) {
   const { focusMode, toggleFocusMode, chordInsertMode, toggleChordInsertMode } = useEditorStore();
   const t = useT();
@@ -88,7 +112,78 @@ export function EditorToolbar({
         <ArrowUp className="h-4 w-4" />
       </button>
 
-      <div className="ml-auto">
+      <div className="mx-1 h-4 w-px bg-border" />
+
+      {onPerformanceMode && (
+        <button
+          onClick={onPerformanceMode}
+          className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+          title={t.performanceMode}
+        >
+          <Play className="h-4 w-4" />
+        </button>
+      )}
+      {onMetronome && (
+        <button
+          onClick={onMetronome}
+          className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+          title={t.metronome}
+        >
+          <Music className="h-4 w-4" />
+        </button>
+      )}
+
+      <div className="ml-auto flex items-center gap-1">
+        {onAIPanel && (
+          <button
+            onClick={onAIPanel}
+            className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+            title={t.aiAssistant}
+          >
+            <Sparkles className="h-4 w-4" />
+          </button>
+        )}
+        {onComments && (
+          <button
+            onClick={onComments}
+            className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+            title={t.comments}
+          >
+            <MessageSquare className="h-4 w-4" />
+          </button>
+        )}
+        {onVersionHistory && (
+          <button
+            onClick={onVersionHistory}
+            className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+            title={t.versionHistory}
+          >
+            <History className="h-4 w-4" />
+          </button>
+        )}
+        {onQRCode && (
+          <button
+            onClick={onQRCode}
+            className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+            title={t.qrCode}
+          >
+            <QrCode className="h-4 w-4" />
+          </button>
+        )}
+        <button
+          onClick={onShare}
+          className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+          title={t.shareSheet}
+        >
+          <Share2 className="h-4 w-4" />
+        </button>
+        <button
+          onClick={onExport}
+          className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+          title={t.exportSheet}
+        >
+          <Download className="h-4 w-4" />
+        </button>
         <button
           onClick={toggleFocusMode}
           className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"

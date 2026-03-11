@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { Plus, FileMusic, Clock, Trash2 } from "lucide-react";
 import { useDeleteSheet } from "@/lib/hooks/use-chord-sheet";
+import { FavoriteButton } from "@/components/favorites/FavoriteButton";
+import { TagManager } from "@/components/tags/TagManager";
 import type { ChordSheet } from "@/types/database.types";
 import { useT } from "@/lib/i18n";
 
@@ -61,11 +63,13 @@ export function SheetListClient({ sheets }: SheetListClientProps) {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <TagManager sheetId={sheet.id} compact />
                 <span className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Clock className="h-3 w-3" />
                   {new Date(sheet.updated_at).toLocaleDateString()}
                 </span>
+                <FavoriteButton sheetId={sheet.id} size="sm" />
                 <button
                   onClick={(e) => {
                     e.preventDefault();

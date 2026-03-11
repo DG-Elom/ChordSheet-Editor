@@ -37,26 +37,54 @@ export function useExport(): UseExportReturn {
     setError(null);
 
     try {
-      // TXT and ChordPro are generated client-side
-      if (options.format === "txt" || options.format === "chopro") {
+      // Client-side formats
+      if (
+        options.format === "txt" ||
+        options.format === "chopro" ||
+        options.format === "png" ||
+        options.format === "midi"
+      ) {
         const { sheet, sections } = await fetchSheetAndSections(sheetId);
-
-        let content: string;
-        let filename: string;
 
         if (options.format === "txt") {
           const { generateTXT } = await import("@/lib/export/txt-generator");
-          content = generateTXT(sheet, sections, options);
-          filename = `${sheet.title || "export"}.txt`;
-        } else {
-          const { generateChordPro } = await import("@/lib/export/chopro-generator");
-          content = generateChordPro(sheet, sections, options);
-          filename = `${sheet.title || "export"}.chopro`;
+          const content = generateTXT(sheet, sections, options);
+          const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+          saveAs(blob, `${sheet.title || "export"}.txt`);
+          return;
         }
 
-        const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-        saveAs(blob, filename);
-        return;
+        if (options.format === "chopro") {
+          const { generateChordPro } = await import("@/lib/export/chopro-generator");
+          const content = generateChordPro(sheet, sections, options);
+          const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+          saveAs(blob, `${sheet.title || "export"}.chopro`);
+          return;
+        }
+
+        if (options.format === "png") {
+          const { generatePng } = await import("@/lib/export/png-generator");
+          const exportData = {
+            title: sheet.title || "Untitled",
+            artist: sheet.artist || undefined,
+            songKey: sheet.song_key || undefined,
+            sections: sections.map((s) => ({
+              label: s.label || s.type,
+              lines: extractTextLines(s),
+            })),
+          };
+          const blob = await generatePng(exportData, options);
+          saveAs(blob, `${sheet.title || "export"}.png`);
+          return;
+        }
+
+        if (options.format === "midi") {
+          const { generateMidi } = await import("@/lib/export/midi-generator");
+          const chords = extractChords(sections);
+          const blob = generateMidi(chords, sheet.bpm || 120);
+          saveAs(blob, `${sheet.title || "export"}.mid`);
+          return;
+        }
       }
 
       // PDF and DOCX are generated server-side
@@ -94,4 +122,40 @@ export function useExport(): UseExportReturn {
   }, []);
 
   return { exporting, error, exportSheet, clearError };
+}
+
+function extractTextLines(section: Section): string[] {
+  const content = section.content as Record<string, unknown>;
+  if (!content?.content) return [];
+  const paragraphs = content.content as Array<Record<string, unknown>>;
+  return paragraphs
+    .filter((p) => p.type === "paragraph")
+    .map((p) => {
+      if (!p.content) return "";
+      return (p.content as Array<{ text?: string }>).map((n) => n.text || "").join("");
+    });
+}
+
+function extractChords(sections: Section[]): string[] {
+  const chords: string[] = [];
+  for (const section of sections) {
+    const content = section.content as Record<string, unknown>;
+    if (!content?.content) continue;
+    const paragraphs = content.content as Array<Record<string, unknown>>;
+    for (const p of paragraphs) {
+      if (!p.content) continue;
+      for (const inline of p.content as Array<{
+        marks?: Array<{ type: string; attrs?: Record<string, string> }>;
+      }>) {
+        if (!inline.marks) continue;
+        for (const mark of inline.marks) {
+          if (mark.type === "chordMark" && mark.attrs) {
+            const q = mark.attrs.quality === "maj" ? "" : mark.attrs.quality;
+            chords.push(mark.attrs.root + q);
+          }
+        }
+      }
+    }
+  }
+  return chords;
 }

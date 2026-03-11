@@ -4,6 +4,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { AppHeader } from "@/components/layout/AppHeader";
+import { GlobalSearch } from "@/components/search/GlobalSearch";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -42,6 +43,7 @@ export function AppShell({ children }: AppShellProps) {
         <AppHeader title={title} onMenuClick={() => setSidebarOpen(true)} />
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">{children}</main>
       </div>
+      <GlobalSearch />
     </div>
   );
 }
