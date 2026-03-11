@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Plus, FileMusic, Download, Share2, Clock } from "lucide-react";
+import { Plus, FileMusic, Download, Share2, Clock, Upload, Youtube } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -48,13 +48,22 @@ export default async function DashboardPage() {
       </div>
 
       {/* CTA */}
-      <Link
-        href="/sheets/new"
-        className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        <Plus className="h-4 w-4" />
-        Create New Sheet
-      </Link>
+      <div className="flex gap-3">
+        <Link
+          href="/sheets/new"
+          className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Plus className="h-4 w-4" />
+          Create New Sheet
+        </Link>
+        <Link
+          href="/sheets/import"
+          className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Upload className="h-4 w-4" />
+          Import Sheet
+        </Link>
+      </div>
 
       {/* Stats cards */}
       <div className="grid gap-4 sm:grid-cols-3">
@@ -99,9 +108,12 @@ export default async function DashboardPage() {
                     </span>
                   )}
                 </div>
-                <div className="mt-3 flex items-center gap-1 text-xs text-muted-foreground/70">
-                  <Clock className="h-3 w-3" />
-                  {formatDate(sheet.updated_at)}
+                <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground/70">
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {formatDate(sheet.updated_at)}
+                  </span>
+                  {sheet.youtube_url && <Youtube className="h-3 w-3 text-red-500" />}
                 </div>
               </Link>
             ))}

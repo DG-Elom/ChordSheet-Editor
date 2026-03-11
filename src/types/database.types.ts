@@ -34,6 +34,7 @@ export interface ChordSheet {
   tempo: string | null;
   bpm: number | null;
   time_signature: string;
+  youtube_url: string | null;
   owner_id: string;
   is_public: boolean;
   is_archived: boolean;

@@ -2,15 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, FileMusic, Settings, LogOut, X } from "lucide-react";
+import { LayoutDashboard, FileMusic, Settings, LogOut, X, Upload } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-
-const navLinks = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/sheets", label: "My Sheets", icon: FileMusic },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
+import { useT } from "@/lib/i18n";
 
 interface AppSidebarProps {
   open: boolean;
@@ -20,6 +15,14 @@ interface AppSidebarProps {
 export function AppSidebar({ open, onClose }: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const t = useT();
+
+  const navLinks = [
+    { href: "/dashboard", label: t.dashboard, icon: LayoutDashboard },
+    { href: "/sheets", label: t.mySheets, icon: FileMusic },
+    { href: "/sheets/import", label: t.importSheet, icon: Upload },
+    { href: "/settings", label: t.settings, icon: Settings },
+  ];
 
   async function handleSignOut() {
     const supabase = createClient();
@@ -87,7 +90,7 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
             className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <LogOut className="h-4 w-4" />
-            Sign Out
+            {t.signOut}
           </button>
         </div>
       </aside>

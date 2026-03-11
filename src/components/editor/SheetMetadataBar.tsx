@@ -2,11 +2,13 @@
 
 import { useEditorStore } from "@/lib/store/editor-store";
 import { useUserStore } from "@/lib/store/user-store";
-import { Music, Save, Loader2 } from "lucide-react";
+import { Music, Save, Loader2, Youtube, ExternalLink } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 export function SheetMetadataBar() {
   const { sheet, updateSheet, isDirty, isSaving } = useEditorStore();
   const notation = useUserStore((s) => s.notation);
+  const t = useT();
 
   if (!sheet) return null;
 
@@ -18,7 +20,7 @@ export function SheetMetadataBar() {
           type="text"
           value={sheet.title}
           onChange={(e) => updateSheet({ title: e.target.value })}
-          placeholder="Song title"
+          placeholder={t.songTitle}
           className="bg-transparent text-lg font-semibold outline-none placeholder:text-muted-foreground"
         />
       </div>
@@ -28,13 +30,13 @@ export function SheetMetadataBar() {
           type="text"
           value={sheet.artist ?? ""}
           onChange={(e) => updateSheet({ artist: e.target.value || null })}
-          placeholder="Artist"
+          placeholder={t.artist}
           className="w-32 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
         />
       </div>
 
       <div className="flex items-center gap-1">
-        <span className="text-xs text-muted-foreground">Key:</span>
+        <span className="text-xs text-muted-foreground">{t.key}:</span>
         <input
           type="text"
           value={sheet.song_key ?? ""}
@@ -45,7 +47,7 @@ export function SheetMetadataBar() {
       </div>
 
       <div className="flex items-center gap-1">
-        <span className="text-xs text-muted-foreground">BPM:</span>
+        <span className="text-xs text-muted-foreground">{t.bpm}:</span>
         <input
           type="number"
           value={sheet.bpm ?? ""}
@@ -58,7 +60,7 @@ export function SheetMetadataBar() {
       </div>
 
       <div className="flex items-center gap-1">
-        <span className="text-xs text-muted-foreground">Time:</span>
+        <span className="text-xs text-muted-foreground">{t.time}:</span>
         <input
           type="text"
           value={sheet.time_signature}
@@ -67,19 +69,40 @@ export function SheetMetadataBar() {
         />
       </div>
 
+      <div className="flex items-center gap-1">
+        <Youtube className="h-3.5 w-3.5 text-muted-foreground" />
+        <input
+          type="url"
+          value={sheet.youtube_url ?? ""}
+          onChange={(e) => updateSheet({ youtube_url: e.target.value || null })}
+          placeholder={t.youtubeUrl}
+          className="w-40 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+        />
+        {sheet.youtube_url && (
+          <a
+            href={sheet.youtube_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground hover:text-primary"
+          >
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        )}
+      </div>
+
       <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
         {isSaving ? (
           <span className="flex items-center gap-1">
             <Loader2 className="h-3 w-3 animate-spin" />
-            Saving...
+            {t.saving}
           </span>
         ) : isDirty ? (
           <span className="flex items-center gap-1">
             <Save className="h-3 w-3" />
-            Unsaved
+            {t.unsaved}
           </span>
         ) : (
-          <span>Saved</span>
+          <span>{t.saved}</span>
         )}
       </div>
     </div>

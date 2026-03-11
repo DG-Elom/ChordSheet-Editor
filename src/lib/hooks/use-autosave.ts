@@ -66,6 +66,7 @@ export function useAutosave() {
             song_key: sheet.song_key ?? undefined,
             tempo: sheet.tempo ?? undefined,
             bpm: sheet.bpm ?? undefined,
+            youtube_url: sheet.youtube_url ?? undefined,
           },
         });
 

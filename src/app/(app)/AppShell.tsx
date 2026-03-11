@@ -8,6 +8,7 @@ import { AppHeader } from "@/components/layout/AppHeader";
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/sheets": "My Sheets",
+  "/sheets/import": "Import Sheet",
   "/settings": "Settings",
 };
 
