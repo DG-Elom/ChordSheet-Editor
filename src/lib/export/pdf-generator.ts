@@ -1,4 +1,5 @@
 import ReactPDF, { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import type { DocumentProps } from "@react-pdf/renderer";
 import { createElement } from "react";
 import type { ChordSheet, Section } from "@/types/database.types";
 import type { ExportOptions } from "@/types/editor.types";
@@ -36,7 +37,7 @@ function buildPDFElement(
   sheet: ChordSheet,
   sections: Section[],
   options: ExportOptions,
-): React.ReactElement {
+): React.ReactElement<DocumentProps> {
   const sizes = FONT_SIZES[options.fontPreset];
   const pageSize = PAGE_SIZES[options.pageSize];
   const margin = 40;
@@ -312,8 +313,7 @@ export async function generatePDF(
   options: ExportOptions,
 ): Promise<Uint8Array> {
   const doc = buildPDFElement(sheet, sections, options);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const stream = await ReactPDF.renderToStream(doc as any);
+  const stream = await ReactPDF.renderToStream(doc);
 
   // Collect stream chunks into a buffer
   const chunks: Uint8Array[] = [];
