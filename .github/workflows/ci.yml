@@ -14,6 +14,11 @@ jobs:
   ci:
     name: Lint, Type Check, Test & Build
     runs-on: ubuntu-latest
+    # Placeholder values: the build prerenders pages that create a Supabase
+    # client, which throws without a URL and key. No request is made at build.
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
 
     steps:
       - name: Checkout repository

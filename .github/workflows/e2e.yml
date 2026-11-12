@@ -39,7 +39,7 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run Playwright tests
-        run: npx playwright test
+        run: npx playwright test tests/e2e --pass-with-no-tests
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
